@@ -1,0 +1,15 @@
+img#logo {
+    float: right;
+}
+
+#consoleLog {
+    font-family: monospace;
+}
+
+#consoleTitle {
+    color: #a3a3a3;
+}
+
+#magpieControl {
+    font-size: x-small;
+}
