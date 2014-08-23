@@ -6,38 +6,57 @@ library(shinyAce)
 ## TODO beware excessive soft-coding
 
 tinsel.server <- quote({
-    default.control <- function() { fromJSON('{ metadata: {}, cells: [ ] }') }
+    default.control <- function() { fromJSON('{ worksheets: [ { cells: [ ], metadata: {} } ], metadata: {} }') }
     
     magpie.control <- reactive({
+        ## Initialize the magpie control structure, 
+
         query <- parseQueryString(session$clientData$url_search)
         
         if (is.null(query$url))
             return(default.control())
+
+        control <- fromJSON(query$url, simplifyVector = FALSE)
+
+        ##control$metadata$source_url <- query$url
+        ##control$metadata$work_dir <- getwd()
         
-        control.json <- paste(readLines(con = url(query$url)), collapse = '\n')
-        control <- fromJSON(control.json)
         return(control)
     })
-    
+
     ## Process the magpie control structure.
     observe({
         control <- magpie.control()
-        
-        ## Discard everything but the code cells, concatenate them,
-        ## and wrap them in an rmarkdown code block.
-        
-        code.cells <- subset(control$cells, cell_type == 'code' && language == 'r')
-        code <- c('```{r echo=TRUE}\n', code.cells$input, '```\n')
+
+        ## Process the first worksheet's cells into a markdown
+        ## document. The `input` in code cells is wrapped in a
+        ## markdown code block, and the `source` in other cells is
+        ## printed verbatim.
+
+        worksheet <- control$worksheets[[1]]
+
+        cell_inputs <- sapply(worksheet$cells, function(cell) {
+            if (cell$cell_type == 'code') {
+                return(c(sprintf('\n```{%s echo=%s}\n', cell$language, 'TRUE'),
+                                 cell$input,
+                                 '\n```\n'))
+            } else if (cell$cell_type == 'heading') {
+                return(c(sprintf('%s %s\n',
+                                 paste(rep('#', as.integer(cell$level)), collapse = ''),
+                                 cell$source)))
+            } else {
+                return(cell$source)
+            }
+        })
         
         ## TODO handle missing parameters or connection errors
-        ## TODO tinsel shouldn't know about knitr; write to a pipe instead
-        ## TODO isolate()
-        updateAceEditor(session, 'knitrNotebook', value = paste(code, collapse = '\n'))
+        ## TODO tinsel shouldn't know about knitr; write to something else
+        isolate(updateAceEditor(session, 'knitrNotebook', value = paste(unlist(cell_inputs), collapse = '')))
     })
     
     ## Render the magpie control structure for debugging.
     output$magpieControl <- renderUI({
-        pre(style = 'font-size: x-small;', toJSON(magpie.control(), pretty = TRUE))
+        pre(style = 'font-size: x-small;', toJSON(magpie.control(), auto_unbox = TRUE, pretty = TRUE))
     })
 })
 
@@ -58,7 +77,7 @@ knitr.server <- quote({
     ## notebook's action button is pressed.
     observe({
         input$knitrRefresh
-        updateTabsetPanel(session, 'magpieTabs', selected = 'knitr')
+        isolate(updateTabsetPanel(session, 'magpieTabs', selected = 'knitr'))
     })
 })
 
