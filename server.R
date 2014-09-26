@@ -1,5 +1,5 @@
-library(knitr)
 library(jsonlite)
+library(rmarkdown)
 library(shinyAce)
 
 ## TODO move "plugin" code to new files
@@ -64,13 +64,25 @@ tinsel.server <- quote({
 ## that's already been set up for them to do fun things with their
 ## data.
 
+render.fragment <- function(text) {
+    src.file <- tempfile(fileext = ".Rmd")
+    writeLines(text, src.file)
+
+    fragment.file <- rmarkdown::render(src.file,
+                                       envir = new.env(),
+                                       output_format = 'html_fragment',
+                                       runtime = 'static',
+                                       quiet = TRUE)
+    return(paste0(readLines(fragment.file), collapse = '\n'))
+}
+
 knitr.server <- quote({
     ## knitr reacts when the notebook's action button is pressed by
     ## grabbing the notebook's contents and rendering it.
     ## TODO read the notebook's contents from a pipe instead
     output$knitrOut <- renderUI({
         input$knitrRefresh
-        isolate(HTML(knit2html(text = input$knitrNotebook, fragment.only = TRUE, quiet = TRUE)))
+        isolate(HTML(render.fragment(input$knitrNotebook)))
     })
 
     ## knitr also switches the active tab in the UI when the
