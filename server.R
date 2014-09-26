@@ -37,12 +37,12 @@ tinsel.server <- quote({
 
         cell_inputs <- sapply(worksheet$cells, function(cell) {
             if (cell$cell_type == 'code') {
-                return(c(sprintf('\n```{%s echo=%s}\n', cell$language, 'TRUE'),
+                return(c(sprintf('```{%s echo=%s}\n', cell$language, 'TRUE'),
                                  cell$input,
-                                 '\n```\n'))
+                                 '```\n'))
             } else if (cell$cell_type == 'heading') {
                 return(c(sprintf('%s %s\n',
-                                 paste(rep('#', as.integer(cell$level)), collapse = ''),
+                                 paste0(rep('#', as.integer(cell$level)), collapse = ''),
                                  cell$source)))
             } else {
                 return(cell$source)
@@ -51,7 +51,7 @@ tinsel.server <- quote({
         
         ## TODO handle missing parameters or connection errors
         ## TODO tinsel shouldn't know about knitr; write to something else
-        isolate(updateAceEditor(session, 'knitrNotebook', value = paste(unlist(cell_inputs), collapse = '')))
+        isolate(updateAceEditor(session, 'knitrNotebook', value = paste0(unlist(cell_inputs), collapse = '')))
     })
     
     ## Render the magpie control structure for debugging.
