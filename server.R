@@ -7,12 +7,12 @@ library(shinyAce)
 
 tinsel.server <- quote({
     default.control <- function() { fromJSON('{ worksheets: [ { cells: [ ], metadata: {} } ], metadata: {} }') }
-    
+
     magpie.control <- reactive({
-        ## Initialize the magpie control structure, 
+        ## Initialize the magpie control structure,
 
         query <- parseQueryString(session$clientData$url_search)
-        
+
         if (is.null(query$url))
             return(default.control())
 
@@ -20,7 +20,7 @@ tinsel.server <- quote({
 
         ##control$metadata$source_url <- query$url
         ##control$metadata$work_dir <- getwd()
-        
+
         return(control)
     })
 
@@ -48,12 +48,11 @@ tinsel.server <- quote({
                 return(cell$source)
             }
         })
-        
         ## TODO handle missing parameters or connection errors
         ## TODO tinsel shouldn't know about knitr; write to something else
         isolate(updateAceEditor(session, 'knitrNotebook', value = paste0(unlist(cell_inputs), collapse = '')))
     })
-    
+
     ## Render the magpie control structure for debugging.
     output$magpieControl <- renderUI({
         pre(style = 'font-size: x-small;', toJSON(magpie.control(), auto_unbox = TRUE, pretty = TRUE))
