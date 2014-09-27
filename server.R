@@ -5,6 +5,31 @@ library(shinyAce)
 ## TODO move "plugin" code to new files
 ## TODO beware excessive soft-coding
 
+tinsel.gather <- function(control) {
+  ## Process the first worksheet's cells into a markdown
+  ## document. The `input` in code cells is wrapped in a
+  ## markdown code block, and the `source` in other cells is
+  ## printed verbatim.
+
+  worksheet <- control$worksheets[[1]]
+
+  cell_inputs <- sapply(worksheet$cells, function(cell) {
+    if (cell$cell_type == 'code') {
+      return(c(sprintf('```{%s echo=%s}\n', cell$language, 'TRUE'),
+               cell$input,
+               '```\n'))
+    } else if (cell$cell_type == 'heading') {
+      return(c(sprintf('%s %s\n',
+                       paste0(rep('#', as.integer(cell$level)), collapse = ''),
+                       cell$source)))
+    } else {
+      return(cell$source)
+    }
+  })
+
+  return(paste0(unlist(cell_inputs), collapse = ''))
+}
+
 tinsel.server <- quote({
     default.control <- function() { fromJSON('{ worksheets: [ { cells: [ ], metadata: {} } ], metadata: {} }') }
 
@@ -27,30 +52,11 @@ tinsel.server <- quote({
     ## Process the magpie control structure.
     observe({
         control <- magpie.control()
+        document <- tinsel.gather(control)
 
-        ## Process the first worksheet's cells into a markdown
-        ## document. The `input` in code cells is wrapped in a
-        ## markdown code block, and the `source` in other cells is
-        ## printed verbatim.
-
-        worksheet <- control$worksheets[[1]]
-
-        cell_inputs <- sapply(worksheet$cells, function(cell) {
-            if (cell$cell_type == 'code') {
-                return(c(sprintf('```{%s echo=%s}\n', cell$language, 'TRUE'),
-                                 cell$input,
-                                 '```\n'))
-            } else if (cell$cell_type == 'heading') {
-                return(c(sprintf('%s %s\n',
-                                 paste0(rep('#', as.integer(cell$level)), collapse = ''),
-                                 cell$source)))
-            } else {
-                return(cell$source)
-            }
-        })
         ## TODO handle missing parameters or connection errors
         ## TODO tinsel shouldn't know about knitr; write to something else
-        isolate(updateAceEditor(session, 'knitrNotebook', value = paste0(unlist(cell_inputs), collapse = '')))
+        isolate(updateAceEditor(session, 'knitrNotebook', value = document))
     })
 
     ## Render the magpie control structure for debugging.
