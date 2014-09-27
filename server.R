@@ -85,6 +85,21 @@ knitr.server <- quote({
         isolate(HTML(render.fragment(input$knitrNotebook)))
     })
 
+    output$knitrDownload <- downloadHandler(
+        filename = 'magpie-document.html',
+        content = function(file) {
+            src.file <- tempfile(fileext = ".Rmd")
+            writeLines(input$knitrNotebook, src.file)
+
+            rmarkdown::render(src.file,
+                              envir = new.env(),
+                              output_format = 'html_document',
+                              output_file = file,
+                              runtime = 'static',
+                              quiet = TRUE)
+        }
+    )
+
     ## knitr also switches the active tab in the UI when the
     ## notebook's action button is pressed.
     observe({

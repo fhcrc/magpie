@@ -10,7 +10,8 @@ tinsel.ui.control <- quote({ tabPanel('control.json', uiOutput('magpieControl'))
 knitr.ui.notebook <- quote({
     tabPanel('notebook',
              aceEditor('knitrNotebook', mode = 'markdown', value = ''),
-             actionButton('knitrRefresh', 'Re-knit', icon('refresh'))
+             actionButton('knitrRefresh', 'Re-knit', icon('refresh')),
+             downloadLink('knitrDownload', 'Download')
              )
 })
 
