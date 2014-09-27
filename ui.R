@@ -11,12 +11,15 @@ knitr.ui.notebook <- quote({
     tabPanel('notebook',
              aceEditor('knitrNotebook', mode = 'markdown', value = ''),
              actionButton('knitrRefresh', 'Re-knit', icon('refresh')),
-             downloadLink('knitrDownload', 'Download')
+             downloadLink('sourceDownload', 'Download source')
              )
 })
 
 knitr.ui.output <- quote({
-    tabPanel('knitr', uiOutput('knitrOut'))
+    tabPanel('knitr',
+             uiOutput('knitrOut'),
+             downloadLink('knitrDownload', 'Download')
+             )
 })
 
 ## Set up magpie boilerplate and inject plugins where appropriate.

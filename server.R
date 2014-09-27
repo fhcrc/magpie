@@ -85,6 +85,13 @@ knitr.server <- quote({
         isolate(HTML(render.fragment(input$knitrNotebook)))
     })
 
+    output$sourceDownload <- downloadHandler(
+        filename = 'magpie-source.Rmd',
+        content = function(file) {
+            writeLines(input$knitrNotebook, file)
+        }
+    )
+
     output$knitrDownload <- downloadHandler(
         filename = 'magpie-document.html',
         content = function(file) {
