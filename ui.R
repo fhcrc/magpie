@@ -32,19 +32,19 @@ shinyUI(fluidPage(
         script(src = 'js/magpie.js')
     )),
     tags$body(
-        sidebarLayout(
-            sidebarPanel(id = 'sidebar',
-                         fluidRow(img(id = 'logo', src = 'img/magpie-64x64.png')),
-                         wellPanel(id = 'consoleLog', p(id = 'consoleTitle', '# console log'))
-                         ),    
-            mainPanel(
+##      sidebarLayout(
+##          sidebarPanel(id = 'sidebar',
+##                       fluidRow(img(id = 'logo', src = 'img/magpie-64x64.png')),
+##                       wellPanel(id = 'consoleLog', p(id = 'consoleTitle', '# console log'))
+##                       ),
+##          mainPanel(
                 tabsetPanel(id = 'magpieTabs',
                             ## TODO should lapply(ui(plugins), eval) or something
                             eval(knitr.ui.notebook),
                             eval(knitr.ui.output),
                             eval(tinsel.ui.control)
                             )
-            )
-        )
+##          )
+##      )
     )
 ))
