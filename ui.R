@@ -24,7 +24,7 @@ knitr.ui.output <- quote({
 
 ## Set up magpie boilerplate and inject plugins where appropriate.
 ## TODO plugins should include their own dependencies (js, css, etc)
-shinyUI(fluidPage(
+shinyUI(fixedPage(
     withTags(head(
         title('magpie'),
         link(rel = 'stylesheet', type = 'text/css', href = 'css/magpie.css'),
